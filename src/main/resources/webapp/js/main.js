@@ -128,26 +128,6 @@ var IntersectingPlane = function() {
     return mesh;
 };
 
-var IntersectingPlane2 = function() {
-    var material = new THREE.MeshPhongMaterial({
-        color: 0x33EE33,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.5
-    });
-
-    var geometry0 = new THREE.Geometry();
-
-    var p0 = center.clone().add(nb).add(nc);
-    var p1 = center.clone().add(nb.clone().negate()).add(nc);
-    var p2 = center.clone().add(nb).add(nc.clone().negate());
-    var p3 = center.clone().add(nb.clone().negate()).add(nc.clone().negate());
-
-    geometry0.vertices.push(p0, p1, p2, p3);
-    var line = new THREE.Line(geometry0, material);
-    return line;
-}
-
 init();
 animate();
 
