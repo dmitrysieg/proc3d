@@ -3,10 +3,6 @@ var scene, camera, renderer;
 var darkLineMaterial = new THREE.LineBasicMaterial({linewidth: 10, color: 0x333333, transparent: true});
 var lightLineMaterial = new THREE.LineBasicMaterial({linewidth: 2, color: 0x333333, opacity: 0.25, transparent: true});
 
-var center = new THREE.Vector3(0.5, 0.5, 0.5);
-var nb = new THREE.Vector3(-Math.sqrt(6.0) / 6.0, Math.sqrt(6.0) / 3.0, -Math.sqrt(6.0) / 6.0);
-var nc = new THREE.Vector3(-Math.sqrt(2.0) / 2.0, 0.0, Math.sqrt(2.0) / 2.0);
-
 /**
  * Visualizing intersection of a cube with a diagonal moving plane.
  * Plane specifics:
@@ -17,10 +13,29 @@ var nc = new THREE.Vector3(-Math.sqrt(2.0) / 2.0, 0.0, Math.sqrt(2.0) / 2.0);
  *
  */
 
+/**
+ * Vector3 pointing to the center of the cube.
+ */
+var center = new THREE.Vector3(0.5, 0.5, 0.5);
+
+/**
+ * Main Intersection plane normal.
+ */
+var na = new THREE.Vector3(1.0, 1.0, 1.0).normalize();
+
+/**
+ * 3rd basis vector orthogonal to na and nb, derived by their cross product.
+ */
+var nb = new THREE.Vector3(-Math.sqrt(6.0) / 6.0, Math.sqrt(6.0) / 3.0, -Math.sqrt(6.0) / 6.0);
+
+/**
+ * 2nd basis vector orthogonal to na and looking to the right (y=0).
+ */
+var nc = new THREE.Vector3(-Math.sqrt(2.0) / 2.0, 0.0, Math.sqrt(2.0) / 2.0);
+
 var createArrows = function () {
 
-    var dir1 = new THREE.Vector3(1, 1, 1);
-    dir1.normalize();
+    var dir1 = na.clone();
     var dir2 = nb.clone();
     var dir3 = nc.clone();
 
@@ -91,17 +106,25 @@ var IntersectingPlane = function() {
     });
 
     var shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(0, 2);
-    shape.lineTo(2, 2);
-    shape.lineTo(2, 0);
-    shape.lineTo(0, 0);
+    shape.moveTo(-1, -1);
+    shape.lineTo(-1, 1);
+    shape.lineTo(1, 1);
+    shape.lineTo(1, -1);
+    shape.lineTo(-1, -1);
 
     var geometry = new THREE.ShapeBufferGeometry(shape);
 
     var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
-    mesh.rotation.set(0.785, 0.785, 0);
+    mesh.position.set(0.5, 0.5, 0.5);
+
+    // Initial normal of the Intersecting plane
+    var v1 = new THREE.Vector3(0.0, 0.0, 1.0);
+    var q = new THREE.Quaternion();
+    // New normal should be na
+    q.setFromUnitVectors(v1, na);
+
+    // Rotating from [0, 0, 1] to na
+    mesh.applyQuaternion(q);
     return mesh;
 };
 
@@ -168,6 +191,7 @@ function init() {
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.center = new THREE.Vector3(0.5, 0.5, 0.5);
+    controls.userPanSpeed = 0.05;
 }
 
 
