@@ -128,6 +128,34 @@ var IntersectingPlane = function() {
     return mesh;
 };
 
+var IntersectionCut = function() {
+
+    var material = new THREE.MeshPhongMaterial({
+        color: 0xEE33EE,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5
+    });
+
+    // vertices
+    var geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector3(0.5, 0.0, 1.0));
+    geometry.vertices.push(new THREE.Vector3(0.0, 0.5, 1.0));
+    geometry.vertices.push(new THREE.Vector3(0.0, 1.0, 0.5));
+    geometry.vertices.push(new THREE.Vector3(0.5, 1.0, 0.0));
+    geometry.vertices.push(new THREE.Vector3(1.0, 0.5, 0.0));
+    geometry.vertices.push(new THREE.Vector3(1.0, 0.0, 0.5));
+
+    // faces
+    geometry.faces.push(new THREE.Face3(0, 1, 2, na.clone()));
+    geometry.faces.push(new THREE.Face3(0, 2, 3, na.clone()));
+    geometry.faces.push(new THREE.Face3(0, 3, 4, na.clone()));
+    geometry.faces.push(new THREE.Face3(0, 4, 5, na.clone()));
+
+    var mesh = new THREE.Mesh(geometry, material);
+    return mesh;
+};
+
 init();
 animate();
 
@@ -168,6 +196,7 @@ function init() {
     scene.add(new WiredCube(0, 0, 0, 1, 1, 1));
     scene.add(createArrows());
     scene.add(new IntersectingPlane());
+    scene.add(new IntersectionCut());
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.center = new THREE.Vector3(0.5, 0.5, 0.5);
