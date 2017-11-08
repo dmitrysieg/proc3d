@@ -130,11 +130,9 @@ var IntersectingPlane = function() {
 
 var IntersectionCut = function() {
 
-    var material = new THREE.MeshPhongMaterial({
+    var material = new THREE.MeshBasicMaterial({
         color: 0xEE33EE,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.5
+        wireframe: true
     });
 
     // vertices
