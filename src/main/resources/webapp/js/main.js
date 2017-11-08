@@ -72,28 +72,91 @@ var WiredCube = function(x1, y1, z1, x2, y2, z2) {
 
     this.material = lightLineMaterial;
 
-    this.geometry = new THREE.Geometry();
-    this.geometry.vertices.push(
-        new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x2, y1, z1),
-        new THREE.Vector3(x1, y1, z2), new THREE.Vector3(x2, y1, z2),
-        new THREE.Vector3(x1, y2, z1), new THREE.Vector3(x2, y2, z1),
-        new THREE.Vector3(x1, y2, z2), new THREE.Vector3(x2, y2, z2),
+    this.segments = [
+        // altering x
+        [new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x2, y1, z1)],
+        [new THREE.Vector3(x1, y1, z2), new THREE.Vector3(x2, y1, z2)],
+        [new THREE.Vector3(x1, y2, z1), new THREE.Vector3(x2, y2, z1)],
+        [new THREE.Vector3(x1, y2, z2), new THREE.Vector3(x2, y2, z2)],
 
         // altering y
-        new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x1, y2, z1),
-        new THREE.Vector3(x1, y1, z2), new THREE.Vector3(x1, y2, z2),
-        new THREE.Vector3(x2, y1, z1), new THREE.Vector3(x2, y2, z1),
-        new THREE.Vector3(x2, y1, z2), new THREE.Vector3(x2, y2, z2),
+        [new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x1, y2, z1)],
+        [new THREE.Vector3(x1, y1, z2), new THREE.Vector3(x1, y2, z2)],
+        [new THREE.Vector3(x2, y1, z1), new THREE.Vector3(x2, y2, z1)],
+        [new THREE.Vector3(x2, y1, z2), new THREE.Vector3(x2, y2, z2)],
 
         // altering z
-        new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x1, y1, z2),
-        new THREE.Vector3(x1, y2, z1), new THREE.Vector3(x1, y2, z2),
-        new THREE.Vector3(x2, y1, z1), new THREE.Vector3(x2, y1, z2),
-        new THREE.Vector3(x2, y2, z1), new THREE.Vector3(x2, y2, z2),
-    );
+        [new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x1, y1, z2)],
+        [new THREE.Vector3(x1, y2, z1), new THREE.Vector3(x1, y2, z2)],
+        [new THREE.Vector3(x2, y1, z1), new THREE.Vector3(x2, y1, z2)],
+        [new THREE.Vector3(x2, y2, z1), new THREE.Vector3(x2, y2, z2)]
+    ];
 
-    this.line = new THREE.LineSegments(this.geometry, this.material);
-    return this.line;
+    this.geometry = new THREE.Geometry();
+    for (var i = 0; i < this.segments.length; i++) {
+        this.geometry.vertices.push(this.segments[i][0], this.segments[i][1]);
+    }
+
+    this.mesh = new THREE.LineSegments(this.geometry, this.material);
+    return this;
+};
+
+WiredCube.prototype = {
+    /**
+     * Find intersection of a set of line segments with a given plane.
+     * Return a mesh ready to be added to a scene.
+     */
+    findIntersections: function(plane) {
+
+        // TODO: replace by plane.getPosition() or so on...
+        var planePoint = new THREE.Vector3(0.60, 0.60, 0.60);
+
+        var intersectionPoints = [];
+
+        for (var i = 0; i < this.segments.length; i++) {
+
+            var xa = this.segments[i][0].clone().sub(planePoint.clone());
+            var projection0 = xa.dot(na.clone());
+
+            var ya = this.segments[i][1].clone().sub(planePoint.clone());
+            var projection1 = ya.dot(na.clone());
+
+            // no intersection
+            if (projection0 * projection1 > 0) {
+                continue;
+            }
+            // TODO process extreme cases (points laying on the plane)
+            var intersectionPoint = this.segments[i][0].clone().add(
+                this.segments[i][1].clone().sub(this.segments[i][0].clone()).multiplyScalar(
+                    Math.abs(projection0) / (Math.abs(projection0) + Math.abs(projection1))
+                )
+            );
+            intersectionPoints.push(intersectionPoint);
+        }
+
+        if (intersectionPoints.length > 0) {
+            var geometry = new THREE.Geometry();
+            for (var i = 0; i < intersectionPoints.length; i++) {
+                geometry.vertices.push(intersectionPoints[i]);
+            }
+            for (var i = 0; i < intersectionPoints.length - 2; i++) {
+                geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
+            }
+
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xEE33EE,
+                wireframe: true
+            });
+
+            var mesh = new THREE.Mesh(geometry, material);
+            return mesh;
+        } else {
+            return null;
+        }
+    },
+    getMesh: function() {
+        return this.mesh;
+    }
 };
 
 var IntersectingPlane = function() {
@@ -125,32 +188,6 @@ var IntersectingPlane = function() {
 
     // Rotating from [0, 0, 1] to na
     mesh.applyQuaternion(q);
-    return mesh;
-};
-
-var IntersectionCut = function() {
-
-    var material = new THREE.MeshBasicMaterial({
-        color: 0xEE33EE,
-        wireframe: true
-    });
-
-    // vertices
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(0.5, 0.0, 1.0));
-    geometry.vertices.push(new THREE.Vector3(0.0, 0.5, 1.0));
-    geometry.vertices.push(new THREE.Vector3(0.0, 1.0, 0.5));
-    geometry.vertices.push(new THREE.Vector3(0.5, 1.0, 0.0));
-    geometry.vertices.push(new THREE.Vector3(1.0, 0.5, 0.0));
-    geometry.vertices.push(new THREE.Vector3(1.0, 0.0, 0.5));
-
-    // faces
-    geometry.faces.push(new THREE.Face3(0, 1, 2, na.clone()));
-    geometry.faces.push(new THREE.Face3(0, 2, 3, na.clone()));
-    geometry.faces.push(new THREE.Face3(0, 3, 4, na.clone()));
-    geometry.faces.push(new THREE.Face3(0, 4, 5, na.clone()));
-
-    var mesh = new THREE.Mesh(geometry, material);
     return mesh;
 };
 
@@ -191,10 +228,16 @@ function init() {
     light2.position.set(100, -200, -100);
     scene.add(light2);
 
-    scene.add(new WiredCube(0, 0, 0, 1, 1, 1));
+    var cube = new WiredCube(0, 0, 0, 1, 1, 1);
+    scene.add(cube.getMesh());
+
     scene.add(createArrows());
-    scene.add(new IntersectingPlane());
-    scene.add(new IntersectionCut());
+
+    var intersectingPlane = new IntersectingPlane();
+    scene.add(intersectingPlane);
+
+    var intersectionCut = cube.findIntersections(intersectingPlane);
+    scene.add(intersectionCut);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.center = new THREE.Vector3(0.5, 0.5, 0.5);
