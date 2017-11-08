@@ -88,14 +88,31 @@ var IntersectingPlane = function() {
         side: THREE.DoubleSide,
         transparent: true,
         opacity: 0.5
-    })
+    });
 
-    /*var shape = new THREE.Shape();
+    var shape = new THREE.Shape();
     shape.moveTo(0, 0);
     shape.lineTo(0, 2);
     shape.lineTo(2, 2);
     shape.lineTo(2, 0);
-    shape.lineTo(0, 0);*/
+    shape.lineTo(0, 0);
+
+    var geometry = new THREE.ShapeBufferGeometry(shape);
+
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 0, 0);
+    mesh.rotation.set(0.785, 0.785, 0);
+    return mesh;
+};
+
+var IntersectingPlane2 = function() {
+    var material = new THREE.MeshPhongMaterial({
+        color: 0x33EE33,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5
+    });
+
     var geometry0 = new THREE.Geometry();
 
     var p0 = center.clone().add(nb).add(nc);
@@ -106,14 +123,7 @@ var IntersectingPlane = function() {
     geometry0.vertices.push(p0, p1, p2, p3);
     var line = new THREE.Line(geometry0, material);
     return line;
-
-    //var geometry = new THREE.ShapeBufferGeometry(shape);
-
-    /*var mesh = new THREE.Mesh(geometry0, material);
-    mesh.position.set(0, 0, 0);
-    mesh.rotation.set(0.785, 0.785, 0);
-    return mesh;*/
-};
+}
 
 init();
 animate();
