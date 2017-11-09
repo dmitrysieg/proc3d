@@ -108,8 +108,7 @@ WiredCube.prototype = {
      */
     findIntersections: function(plane) {
 
-        // TODO: replace by plane.getPosition() or so on...
-        var planePoint = new THREE.Vector3(0.60, 0.60, 0.60);
+        var planePoint = plane.getPosition();
 
         var intersectionPoints = [];
 
@@ -159,7 +158,7 @@ WiredCube.prototype = {
     }
 };
 
-var IntersectingPlane = function() {
+var IntersectingPlane = function(position) {
 
     var material = new THREE.MeshPhongMaterial({
         color: 0x33EE33,
@@ -168,6 +167,7 @@ var IntersectingPlane = function() {
         opacity: 0.5
     });
 
+    // center at (0, 0)
     var shape = new THREE.Shape();
     shape.moveTo(-1, -1);
     shape.lineTo(-1, 1);
@@ -177,8 +177,9 @@ var IntersectingPlane = function() {
 
     var geometry = new THREE.ShapeBufferGeometry(shape);
 
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0.5, 0.5, 0.5);
+    this.position = position.clone();
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.position.copy(this.position);
 
     // Initial normal of the Intersecting plane
     var v1 = new THREE.Vector3(0.0, 0.0, 1.0);
@@ -187,8 +188,17 @@ var IntersectingPlane = function() {
     q.setFromUnitVectors(v1, na);
 
     // Rotating from [0, 0, 1] to na
-    mesh.applyQuaternion(q);
-    return mesh;
+    this.mesh.applyQuaternion(q);
+    return this;
+};
+
+IntersectingPlane.prototype = {
+    getMesh: function() {
+        return this.mesh;
+    },
+    getPosition: function() {
+        return this.position;
+    }
 };
 
 init();
@@ -233,8 +243,8 @@ function init() {
 
     scene.add(createArrows());
 
-    var intersectingPlane = new IntersectingPlane();
-    scene.add(intersectingPlane);
+    var intersectingPlane = new IntersectingPlane(new THREE.Vector3(0.60, 0.60, 0.60));
+    scene.add(intersectingPlane.getMesh());
 
     var intersectionCut = cube.findIntersections(intersectingPlane);
     scene.add(intersectionCut);
