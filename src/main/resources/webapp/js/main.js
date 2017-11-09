@@ -68,6 +68,35 @@ var createArrows = function () {
     return group;
 };
 
+/**
+ * Consume a set of randomly located points.
+ * Transform them into fan-triangulated shape mesh.
+ */
+var PointProcessor = function() {};
+
+PointProcessor.prototype = {
+    /**
+     * @param points Non-empty array of Vector3.
+     */
+    processPoints: function(points) {
+        var geometry = new THREE.Geometry();
+        for (var i = 0; i < points.length; i++) {
+            geometry.vertices.push(points[i]);
+        }
+        for (var i = 0; i < points.length - 2; i++) {
+            geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
+        }
+
+        var material = new THREE.MeshBasicMaterial({
+            color: 0xEE33EE,
+            wireframe: true
+        });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        return mesh;
+    }
+};
+
 var WiredCube = function(x1, y1, z1, x2, y2, z2) {
 
     this.material = lightLineMaterial;
@@ -134,21 +163,7 @@ WiredCube.prototype = {
         }
 
         if (intersectionPoints.length > 0) {
-            var geometry = new THREE.Geometry();
-            for (var i = 0; i < intersectionPoints.length; i++) {
-                geometry.vertices.push(intersectionPoints[i]);
-            }
-            for (var i = 0; i < intersectionPoints.length - 2; i++) {
-                geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
-            }
-
-            var material = new THREE.MeshBasicMaterial({
-                color: 0xEE33EE,
-                wireframe: true
-            });
-
-            var mesh = new THREE.Mesh(geometry, material);
-            return mesh;
+            return new PointProcessor().processPoints(intersectionPoints);
         } else {
             return null;
         }
