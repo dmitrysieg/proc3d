@@ -342,7 +342,7 @@ AnimationController.prototype = {
     speed: 0.2,
     direction: 1,
     intersectionCut: null,
-    tricky: false,
+    tricky: true,
     animate: function() {
 
         var delta = clock.getDelta();
@@ -364,6 +364,12 @@ AnimationController.prototype = {
         if (this.intersectionCut) {
             this.scene.remove(this.intersectionCut);
         }
+        if (this.arrows) {
+            this.scene.remove(this.arrows);
+        }
+        this.arrows = createArrows(this.intersectingPlane);
+        this.scene.add(this.arrows);
+        // TODO: visual bug! fix arrows generation
 
         if (this.tricky) {
             this.intersectingPlane.normal.applyAxisAngle(this.a1, 0.005);
@@ -443,6 +449,7 @@ function init() {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.center = cube.getMesh().geometry.boundingBox.getCenter().clone().add(cube.getMesh().position);
     controls.userPanSpeed = 0.05;
+    controls.autoRotate = true;
 
     animationController = new AnimationController(scene, cube, intersectingPlane);
 }
