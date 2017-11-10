@@ -1,9 +1,15 @@
-var scene, camera, renderer;
+var scene, camera, renderer, cube, intersectingPlane;
 
 var darkLineMaterial = new THREE.LineBasicMaterial({linewidth: 10, color: 0x333333, transparent: true});
 var lightLineMaterial = new THREE.LineBasicMaterial({linewidth: 2, color: 0x333333, opacity: 0.25, transparent: true});
 
 var font;
+var clock = new THREE.Clock();
+
+var speed = 0.2;
+var direction = 1;
+
+var intersectionCut = null;
 
 /**
  * Visualizing intersection of a cube with a diagonal moving plane.
@@ -81,9 +87,11 @@ PointProcessor.prototype = {
     /**
      * Material used for drawing the cut mesh itself.
      */
-    cutMaterial: new THREE.MeshBasicMaterial({
+    cutMaterial: new THREE.MeshPhongMaterial({
         color: 0xEE33EE,
-        wireframe: true
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5
     }),
 
     /**
@@ -193,7 +201,6 @@ PointProcessor.prototype = {
                 break;
             }
         }
-        console.log(angles);
         // for debug purposes
         return angles;
     }
@@ -306,6 +313,7 @@ var IntersectingPlane = function(position) {
 
     // Rotating from [0, 0, 1] to na
     this.mesh.applyQuaternion(q);
+    this.mesh.visible = false;
     return this;
 };
 
@@ -315,6 +323,9 @@ IntersectingPlane.prototype = {
     },
     getPosition: function() {
         return this.position;
+    },
+    setPosition: function(position) {
+        this.position = position;
     }
 };
 
@@ -370,27 +381,43 @@ function init() {
     light2.position.set(100, -200, -100);
     scene.add(light2);
 
-    var cube = new WiredCube(0, 0, 0, 1, 1, 1);
+    cube = new WiredCube(0, 0, 0, 1, 1, 1);
     scene.add(cube.getMesh());
 
-    scene.add(createArrows());
+    //scene.add(createArrows());
 
-    var intersectingPlane = new IntersectingPlane(new THREE.Vector3(0.60, 0.60, 0.60));
+    intersectingPlane = new IntersectingPlane(center.clone());
     scene.add(intersectingPlane.getMesh());
 
-    var intersectionCut = cube.findIntersections(intersectingPlane);
-    scene.add(intersectionCut);
-
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.center = new THREE.Vector3(0.5, 0.5, 0.5);
+    controls.center = center.clone();
     controls.userPanSpeed = 0.05;
 }
 
-
 function animate() {
+    requestAnimationFrame(animate);
 
-  requestAnimationFrame(animate);
+    var delta = clock.getDelta();
 
-  renderer.render(scene, camera);
-  controls.update();
+    var dx = delta * speed * direction;
+    center.addScalar(dx);
+    if (center.x > 1.0 - 0.05) {
+        center.setScalar(1.0 - 0.05);
+        direction = -direction;
+    } else if (center.x < 0.0 + 0.05) {
+        center.setScalar(0.0 + 0.05);
+        direction = -direction;
+    }
+    // TODO: process a case with no intersection correctly
+
+    intersectingPlane.setPosition(center);
+
+    if (intersectionCut) {
+        scene.remove(intersectionCut);
+    }
+    intersectionCut = cube.findIntersections(intersectingPlane);
+    scene.add(intersectionCut);
+
+    renderer.render(scene, camera);
+    controls.update();
 }
