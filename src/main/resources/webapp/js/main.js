@@ -3,6 +3,8 @@ var scene, camera, renderer;
 var darkLineMaterial = new THREE.LineBasicMaterial({linewidth: 10, color: 0x333333, transparent: true});
 var lightLineMaterial = new THREE.LineBasicMaterial({linewidth: 2, color: 0x333333, opacity: 0.25, transparent: true});
 
+var font;
+
 /**
  * Visualizing intersection of a cube with a diagonal moving plane.
  * Plane specifics:
@@ -77,23 +79,88 @@ var PointProcessor = function() {};
 PointProcessor.prototype = {
     /**
      * @param points Non-empty array of Vector3.
+     * Contract: points order is not guaranteed, so the method should perform sorting of them.
      */
-    processPoints: function(points) {
-        var geometry = new THREE.Geometry();
-        for (var i = 0; i < points.length; i++) {
-            geometry.vertices.push(points[i]);
-        }
-        for (var i = 0; i < points.length - 2; i++) {
-            geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
-        }
+    processPoints: function(plane, points) {
 
+        var angles = this.sortPoints(plane, points)
+
+        var group = new THREE.Group();
         var material = new THREE.MeshBasicMaterial({
             color: 0xEE33EE,
             wireframe: true
         });
 
+        var geometry = new THREE.Geometry();
+        for (var i = 0; i < points.length; i++) {
+            geometry.vertices.push(points[i]);
+            var label = new THREE.Mesh(
+                new THREE.TextGeometry(i + ',' + angles[i], {font: font, size: 0.05, height: 0.01, curveSegments: 2}),
+                material
+            );
+            label.geometry.computeBoundingBox();
+
+            var offset = points[i].clone().add(new THREE.Vector3(
+                -0.5 * (label.geometry.boundingBox.max.x - label.geometry.boundingBox.min.x),
+                -0.5 * (label.geometry.boundingBox.max.y - label.geometry.boundingBox.min.y),
+                -0.5 * (label.geometry.boundingBox.max.z - label.geometry.boundingBox.min.z)
+            ));
+
+            label.position.copy(offset);
+            group.add(label);
+        }
+        for (var i = 0; i < points.length - 2; i++) {
+            geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
+        }
+
         var mesh = new THREE.Mesh(geometry, material);
-        return mesh;
+        group.add(mesh);
+        return group;
+    },
+    /**
+     * Sort points in the order going by round around a particular point (@center).
+     */
+    sortPoints: function(plane, points) {
+        var angles = [];
+
+        var planifier = new THREE.Quaternion();
+        planifier.setFromUnitVectors(na, new THREE.Vector3(0.0, 0.0, 1.0));
+
+        // calculating polar angles
+        for (var i = 0; i < points.length; i++) {
+
+            // projection of the point to the plane, resulting to have redundant z coordinate
+            var rel = points[i].clone().sub(plane.position);
+            rel.applyQuaternion(planifier);
+
+            // TODO! handle division by zero case
+            angles.push(Math.atan(rel.y / rel.x));
+        }
+
+        // Bubble!
+        for (var j = 1; j <= points.length - 1; j++) {
+            var order = true;
+            for (var i = 0; i <= points.length - j; i++) {
+                if (angles[i] > angles[i+1]) {
+                    // swapping angles & points
+                    var tmp = angles[i];
+                    angles[i] = angles[i+1];
+                    angles[i+1] = tmp;
+
+                    tmp = points[i];
+                    points[i] = points[i+1];
+                    points[i+1] = tmp;
+
+                    order = false;
+                }
+            }
+            if (order) {
+                break;
+            }
+        }
+        console.log(angles);
+        // for debug purposes
+        return angles;
     }
 };
 
@@ -163,7 +230,7 @@ WiredCube.prototype = {
         }
 
         if (intersectionPoints.length > 0) {
-            return new PointProcessor().processPoints(intersectionPoints);
+            return new PointProcessor().processPoints(plane, intersectionPoints);
         } else {
             return null;
         }
@@ -216,8 +283,23 @@ IntersectingPlane.prototype = {
     }
 };
 
-init();
-animate();
+
+
+var fontLoader = new THREE.FontLoader();
+fontLoader.load(
+    'js/fonts/helvetiker_regular.typeface.json',
+    function(result) {
+        font = result;
+        init();
+        animate();
+    },
+    function (xhr) {
+        console.log( (xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    function (xhr) {
+        console.log( 'An error happened' );
+    }
+);
 
 function init() {
 
