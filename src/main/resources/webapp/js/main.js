@@ -77,6 +77,51 @@ var createArrows = function () {
 var PointProcessor = function() {};
 
 PointProcessor.prototype = {
+
+    /**
+     * Material used for drawing the cut mesh itself.
+     */
+    cutMaterial: new THREE.MeshBasicMaterial({
+        color: 0xEE33EE,
+        wireframe: true
+    }),
+
+    /**
+     * Material used for drawing labels for the cut mesh points.
+     */
+    cutLabelMaterial: new THREE.MeshBasicMaterial({
+        color: 0xEE33EE,
+        wireframe: true
+    }),
+
+    /**
+     * Create a cut mesh point label, based on data used while drawing cut mesh.
+     * @param points Array of the cut shape points.
+     * @param angles Array of calculated angles of the cut shape points relatively to the cut plane.
+     * @param i Current point index in the drawing cycle.
+     */
+    createCutLabel: function(points, angles, i) {
+        var label = new THREE.Mesh(
+            new THREE.TextGeometry(i + ',' + angles[i], {font: font, size: 0.05, height: 0.01, curveSegments: 2}),
+            this.cutLabelMaterial
+        );
+        label.geometry.computeBoundingBox();
+
+        var offset = points[i].clone().add(new THREE.Vector3(
+            -0.5 * (label.geometry.boundingBox.max.x - label.geometry.boundingBox.min.x),
+            -0.5 * (label.geometry.boundingBox.max.y - label.geometry.boundingBox.min.y),
+            -0.5 * (label.geometry.boundingBox.max.z - label.geometry.boundingBox.min.z)
+        ));
+
+        label.position.copy(offset);
+        return label;
+    },
+
+    /**
+     * Flag to draw or not to draw cut points labels.
+     */
+    isDrawCutLabels: false,
+
     /**
      * @param points Non-empty array of Vector3.
      * Contract: points order is not guaranteed, so the method should perform sorting of them.
@@ -86,34 +131,19 @@ PointProcessor.prototype = {
         var angles = this.sortPoints(plane, points)
 
         var group = new THREE.Group();
-        var material = new THREE.MeshBasicMaterial({
-            color: 0xEE33EE,
-            wireframe: true
-        });
 
         var geometry = new THREE.Geometry();
         for (var i = 0; i < points.length; i++) {
             geometry.vertices.push(points[i]);
-            var label = new THREE.Mesh(
-                new THREE.TextGeometry(i + ',' + angles[i], {font: font, size: 0.05, height: 0.01, curveSegments: 2}),
-                material
-            );
-            label.geometry.computeBoundingBox();
-
-            var offset = points[i].clone().add(new THREE.Vector3(
-                -0.5 * (label.geometry.boundingBox.max.x - label.geometry.boundingBox.min.x),
-                -0.5 * (label.geometry.boundingBox.max.y - label.geometry.boundingBox.min.y),
-                -0.5 * (label.geometry.boundingBox.max.z - label.geometry.boundingBox.min.z)
-            ));
-
-            label.position.copy(offset);
-            group.add(label);
+            if (this.isDrawCutLabels) {
+                group.add(this.createCutLabel(points, angles, i));
+            }
         }
         for (var i = 0; i < points.length - 2; i++) {
             geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
         }
 
-        var mesh = new THREE.Mesh(geometry, material);
+        var mesh = new THREE.Mesh(geometry, this.cutMaterial);
         group.add(mesh);
         return group;
     },
