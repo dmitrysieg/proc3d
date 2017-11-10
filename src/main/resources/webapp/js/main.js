@@ -6,10 +6,7 @@ var lightLineMaterial = new THREE.LineBasicMaterial({linewidth: 2, color: 0x3333
 var font;
 var clock = new THREE.Clock();
 
-var speed = 0.2;
-var direction = 1;
-
-var intersectionCut = null;
+var animationController;
 
 /**
  * Visualizing intersection of a cube with a diagonal moving plane.
@@ -332,7 +329,41 @@ IntersectingPlane.prototype = {
     }
 };
 
+var AnimationController = function(scene, cube, intersectingPlane) {
+    this.scene = scene;
+    this.cube = cube;
+    this.intersectingPlane = intersectingPlane;
+};
 
+AnimationController.prototype = {
+    speed: 0.2,
+    direction: 1,
+    intersectionCut: null,
+    animate: function() {
+
+        var delta = clock.getDelta();
+        var dx = delta * this.speed * this.direction;
+
+        var position = this.intersectingPlane.getPosition();
+        position.addScalar(dx);
+        if (position.x > 1.0 - 0.05) {
+            position.setScalar(1.0 - 0.05);
+            this.direction = -this.direction;
+        } else if (position.x < 0.0 + 0.05) {
+            position.setScalar(0.0 + 0.05);
+            this.direction = -this.direction;
+        }
+        // TODO: process a case with no intersection correctly
+
+        this.intersectingPlane.setPosition(position);
+
+        if (this.intersectionCut) {
+            this.scene.remove(this.intersectionCut);
+        }
+        this.intersectionCut = this.cube.findIntersections(this.intersectingPlane);
+        this.scene.add(this.intersectionCut);
+    }
+};
 
 var fontLoader = new THREE.FontLoader();
 fontLoader.load(
@@ -401,33 +432,14 @@ function init() {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.center = cube.getMesh().geometry.boundingBox.getCenter().clone().add(cube.getMesh().position);
     controls.userPanSpeed = 0.05;
+
+    animationController = new AnimationController(scene, cube, intersectingPlane);
 }
 
 function animate() {
     requestAnimationFrame(animate);
 
-    var delta = clock.getDelta();
-
-    var dx = delta * speed * direction;
-
-    var position = intersectingPlane.getPosition();
-    position.addScalar(dx);
-    if (position.x > 1.0 - 0.05) {
-        position.setScalar(1.0 - 0.05);
-        direction = -direction;
-    } else if (position.x < 0.0 + 0.05) {
-        position.setScalar(0.0 + 0.05);
-        direction = -direction;
-    }
-    // TODO: process a case with no intersection correctly
-
-    intersectingPlane.setPosition(position);
-
-    if (intersectionCut) {
-        scene.remove(intersectionCut);
-    }
-    intersectionCut = cube.findIntersections(intersectingPlane);
-    scene.add(intersectionCut);
+    animationController.animate();
 
     renderer.render(scene, camera);
     controls.update();
