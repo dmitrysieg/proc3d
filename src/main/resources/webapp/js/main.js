@@ -333,12 +333,16 @@ var AnimationController = function(scene, cube, intersectingPlane) {
     this.scene = scene;
     this.cube = cube;
     this.intersectingPlane = intersectingPlane;
+    this.a1 = new THREE.Vector3(1, 0, 0);
+    this.a2 = new THREE.Vector3(0, 1, 0);
+    this.a3 = new THREE.Vector3(0, 0, 1);
 };
 
 AnimationController.prototype = {
     speed: 0.2,
     direction: 1,
     intersectionCut: null,
+    tricky: false,
     animate: function() {
 
         var delta = clock.getDelta();
@@ -360,6 +364,13 @@ AnimationController.prototype = {
         if (this.intersectionCut) {
             this.scene.remove(this.intersectionCut);
         }
+
+        if (this.tricky) {
+            this.intersectingPlane.normal.applyAxisAngle(this.a1, 0.005);
+            this.intersectingPlane.normal.applyAxisAngle(this.a2, 0.005);
+            this.intersectingPlane.normal.applyAxisAngle(this.a2, 0.005);
+        }
+
         this.intersectionCut = this.cube.findIntersections(this.intersectingPlane);
         this.scene.add(this.intersectionCut);
     }
