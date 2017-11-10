@@ -21,49 +21,31 @@ var intersectionCut = null;
  *
  */
 
-/**
- * Vector3 pointing to the center of the cube.
- */
-var center = new THREE.Vector3(0.5, 0.5, 0.5);
+var createArrows = function(plane) {
 
-/**
- * Main Intersection plane normal.
- */
-var na = new THREE.Vector3(1.0, 1.0, 1.0).normalize();
+    var axer = plane.getAxer();
 
-/**
- * 3rd basis vector orthogonal to na and nb, derived by their cross product.
- */
-var nb = new THREE.Vector3(-Math.sqrt(6.0) / 6.0, Math.sqrt(6.0) / 3.0, -Math.sqrt(6.0) / 6.0);
-
-/**
- * 2nd basis vector orthogonal to na and looking to the right (y=0).
- */
-var nc = new THREE.Vector3(-Math.sqrt(2.0) / 2.0, 0.0, Math.sqrt(2.0) / 2.0);
-
-var createArrows = function () {
-
-    var dir1 = na.clone();
-    var dir2 = nb.clone();
-    var dir3 = nc.clone();
+    var dir1 = plane.getNormal().clone();
+    var dir2 = new THREE.Vector3(1.0, 0.0, 0.0).applyQuaternion(axer);
+    var dir3 = new THREE.Vector3(0.0, 1.0, 0.0).applyQuaternion(axer);
 
     var arrow1 = new THREE.ArrowHelper(
         dir1,
-        new THREE.Vector3(0.5, 0.5, 0.5),
+        plane.getPosition(),
         1,
         0xFF0000
     );
 
     var arrow2 = new THREE.ArrowHelper(
         dir2,
-        new THREE.Vector3(0.5, 0.5, 0.5),
+        plane.getPosition(),
         1,
         0xFFF000
     );
 
     var arrow3 = new THREE.ArrowHelper(
         dir3,
-        new THREE.Vector3(0.5, 0.5, 0.5),
+        plane.getPosition(),
         1,
         0xFFFF00
     );
@@ -148,7 +130,7 @@ PointProcessor.prototype = {
             }
         }
         for (var i = 0; i < points.length - 2; i++) {
-            geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, na.clone()));
+            geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, plane.getNormal().clone()));
         }
 
         var mesh = new THREE.Mesh(geometry, this.cutMaterial);
@@ -156,19 +138,18 @@ PointProcessor.prototype = {
         return group;
     },
     /**
-     * Sort points in the order going by round around a particular point (@center).
+     * Sort points in the order going by round around a particular point.
      */
     sortPoints: function(plane, points) {
         var angles = [];
 
-        var planifier = new THREE.Quaternion();
-        planifier.setFromUnitVectors(na, new THREE.Vector3(0.0, 0.0, 1.0));
+        var planifier = plane.getPlanifier();
 
         // calculating polar angles
         for (var i = 0; i < points.length; i++) {
 
             // projection of the point to the plane, resulting to have redundant z coordinate
-            var rel = points[i].clone().sub(plane.position);
+            var rel = points[i].clone().sub(plane.getPosition());
             rel.applyQuaternion(planifier);
 
             // TODO! handle division by zero case
@@ -253,10 +234,10 @@ WiredCube.prototype = {
         for (var i = 0; i < this.segments.length; i++) {
 
             var xa = this.segments[i][0].clone().sub(planePoint.clone());
-            var projection0 = xa.dot(na.clone());
+            var projection0 = xa.dot(plane.getNormal().clone());
 
             var ya = this.segments[i][1].clone().sub(planePoint.clone());
-            var projection1 = ya.dot(na.clone());
+            var projection1 = ya.dot(plane.getNormal().clone());
 
             // no intersection
             if (projection0 * projection1 > 0) {
@@ -282,7 +263,7 @@ WiredCube.prototype = {
     }
 };
 
-var IntersectingPlane = function(position) {
+var IntersectingPlane = function(position, normal) {
 
     var material = new THREE.MeshPhongMaterial({
         color: 0x33EE33,
@@ -302,24 +283,46 @@ var IntersectingPlane = function(position) {
     var geometry = new THREE.ShapeBufferGeometry(shape);
 
     this.position = position.clone();
+    this.normal = normal.clone();
     this.mesh = new THREE.Mesh(geometry, material);
     this.mesh.position.copy(this.position);
 
-    // Initial normal of the Intersecting plane
+    // Rotating from [0, 0, 1] to the initial normal
     var v1 = new THREE.Vector3(0.0, 0.0, 1.0);
     var q = new THREE.Quaternion();
-    // New normal should be na
-    q.setFromUnitVectors(v1, na);
-
-    // Rotating from [0, 0, 1] to na
+    q.setFromUnitVectors(v1, this.normal);
     this.mesh.applyQuaternion(q);
+
     this.mesh.visible = false;
     return this;
 };
 
 IntersectingPlane.prototype = {
+    /**
+     * Return a quaternion converting from the plane relative to the global.
+     */
+    getAxer: function() {
+        if (!this.axer) {
+            this.axer = new THREE.Quaternion();
+            this.axer.setFromUnitVectors(new THREE.Vector3(0.0, 0.0, 1.0), this.getNormal());
+        }
+        return this.axer;
+    },
     getMesh: function() {
         return this.mesh;
+    },
+    getNormal: function() {
+        return this.normal;
+    },
+    /**
+     * Return a quaternion converting from the global to the plane relative.
+     */
+    getPlanifier: function() {
+        if (!this.planifier) {
+            this.planifier = new THREE.Quaternion();
+            this.planifier.setFromUnitVectors(this.getNormal(), new THREE.Vector3(0.0, 0.0, 1.0));
+        }
+        return this.planifier;
     },
     getPosition: function() {
         return this.position;
@@ -386,11 +389,17 @@ function init() {
 
     //scene.add(createArrows());
 
-    intersectingPlane = new IntersectingPlane(center.clone());
+    intersectingPlane = new IntersectingPlane(
+        // initial position
+        new THREE.Vector3(0.5, 0.5, 0.5),
+        // initial normal
+        new THREE.Vector3(1.0, 1.0, 1.0).normalize()
+    );
     scene.add(intersectingPlane.getMesh());
 
+    cube.getMesh().geometry.computeBoundingBox();
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.center = center.clone();
+    controls.center = cube.getMesh().geometry.boundingBox.getCenter().clone().add(cube.getMesh().position);
     controls.userPanSpeed = 0.05;
 }
 
@@ -400,17 +409,19 @@ function animate() {
     var delta = clock.getDelta();
 
     var dx = delta * speed * direction;
-    center.addScalar(dx);
-    if (center.x > 1.0 - 0.05) {
-        center.setScalar(1.0 - 0.05);
+
+    var position = intersectingPlane.getPosition();
+    position.addScalar(dx);
+    if (position.x > 1.0 - 0.05) {
+        position.setScalar(1.0 - 0.05);
         direction = -direction;
-    } else if (center.x < 0.0 + 0.05) {
-        center.setScalar(0.0 + 0.05);
+    } else if (position.x < 0.0 + 0.05) {
+        position.setScalar(0.0 + 0.05);
         direction = -direction;
     }
     // TODO: process a case with no intersection correctly
 
-    intersectingPlane.setPosition(center);
+    intersectingPlane.setPosition(position);
 
     if (intersectionCut) {
         scene.remove(intersectionCut);
