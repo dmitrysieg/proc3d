@@ -134,7 +134,12 @@ PointProcessor.prototype = {
             rel.applyQuaternion(planifier);
 
             // TODO! handle division by zero case
-            angles.push(Math.atan(rel.y / rel.x));
+            var angle = Math.atan(rel.y / rel.x);
+            // js Math.atan supports only [-pi/2; pi/2] values
+            if (rel.x <= 0) {
+                angle += Math.PI;
+            }
+            angles.push(angle);
         }
 
         // Bubble!
