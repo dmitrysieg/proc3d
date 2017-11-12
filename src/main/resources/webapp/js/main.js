@@ -299,11 +299,9 @@ IntersectingPlane.prototype = {
      * Return a quaternion converting from the plane relative to the global.
      */
     getAxer: function() {
-        if (!this.axer) {
-            this.axer = new THREE.Quaternion();
-            this.axer.setFromUnitVectors(new THREE.Vector3(0.0, 0.0, 1.0), this.getNormal());
-        }
-        return this.axer;
+        var axer = new THREE.Quaternion();
+        axer.setFromUnitVectors(new THREE.Vector3(0.0, 0.0, 1.0), this.getNormal());
+        return axer;
     },
     getMesh: function() {
         return this.mesh;
@@ -315,11 +313,9 @@ IntersectingPlane.prototype = {
      * Return a quaternion converting from the global to the plane relative.
      */
     getPlanifier: function() {
-        if (!this.planifier) {
-            this.planifier = new THREE.Quaternion();
-            this.planifier.setFromUnitVectors(this.getNormal(), new THREE.Vector3(0.0, 0.0, 1.0));
-        }
-        return this.planifier;
+        var planifier = new THREE.Quaternion();
+        planifier.setFromUnitVectors(this.getNormal(), new THREE.Vector3(0.0, 0.0, 1.0));
+        return planifier;
     },
     getPosition: function() {
         return this.position;
