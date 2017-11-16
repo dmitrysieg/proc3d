@@ -8,97 +8,103 @@
  *
  */
 
-require([
-    './lib/three.min',
-    './lib/OrbitControls',
-    'logic'
-], function() {
-    THREE,
-    OrbitControls,
-    Logic
+requirejs.config({
+    baseUrl: 'js'
 });
 
-var scene, camera, renderer;
+require([
+    'lib/three.min',
+    'lib/OrbitControls',
+    'logic'
+], function(THREE, OrbitControls, Logic) {
 
-var font;
+    var scene, camera, renderer;
 
-var fontLoader = new THREE.FontLoader();
-fontLoader.load(
-    'js/fonts/helvetiker_regular.typeface.json',
-    function(result) {
-        font = result;
-        init();
-        animate();
-    },
-    function (xhr) {
-        console.log( (xhr.loaded / xhr.total * 100) + '% loaded');
-    },
-    function (xhr) {
-        console.log( 'An error happened' );
-    }
-);
+    var font;
 
-function init() {
+    var fontLoader = new THREE.FontLoader();
+    fontLoader.load(
+        'js/fonts/helvetiker_regular.typeface.json',
+        function(result) {
+            font = result;
+            init();
+            animate();
+        },
+        function (xhr) {
+            console.log( (xhr.loaded / xhr.total * 100) + '% loaded');
+        },
+        function (xhr) {
+            console.log( 'An error happened' );
+        }
+    );
 
-    scene = new THREE.Scene();
-    var WIDTH = window.innerWidth,
-        HEIGHT = window.innerHeight;
+    function init() {
 
-    renderer = new THREE.WebGLRenderer({
-        antialias:true
-    });
-    renderer.setSize(WIDTH, HEIGHT);
-    document.body.appendChild(renderer.domElement);
-
-    camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
-    camera.position.set(1.7, 2.2, 2.05);
-    scene.add(camera);
-
-    window.addEventListener('resize', function() {
+        scene = new THREE.Scene();
         var WIDTH = window.innerWidth,
             HEIGHT = window.innerHeight;
+
+        renderer = new THREE.WebGLRenderer({
+            antialias:true
+        });
         renderer.setSize(WIDTH, HEIGHT);
-        camera.aspect = WIDTH / HEIGHT;
-        camera.updateProjectionMatrix();
-    });
+        document.body.appendChild(renderer.domElement);
 
-    renderer.setClearColor(0xEEEEEE, 1);
+        camera = new THREE.PerspectiveCamera(45, WIDTH / HEIGHT, 0.1, 20000);
+        camera.position.set(1.7, 2.2, 2.05);
+        scene.add(camera);
 
-    var light1 = new THREE.PointLight(0xffffff);
-    light1.position.set(-100, 200, 100);
-    scene.add(light1);
+        window.addEventListener('resize', function() {
+            var WIDTH = window.innerWidth,
+                HEIGHT = window.innerHeight;
+            renderer.setSize(WIDTH, HEIGHT);
+            camera.aspect = WIDTH / HEIGHT;
+            camera.updateProjectionMatrix();
+        });
 
-    var light2 = new THREE.PointLight(0xffffff);
-    light2.position.set(100, -200, -100);
-    scene.add(light2);
+        renderer.setClearColor(0xEEEEEE, 1);
 
-    var cube = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
-    scene.add(cube.getMesh());
+        var light1 = new THREE.PointLight(0xffffff);
+        light1.position.set(-100, 200, 100);
+        scene.add(light1);
 
-    //scene.add(createArrows());
+        var light2 = new THREE.PointLight(0xffffff);
+        light2.position.set(100, -200, -100);
+        scene.add(light2);
 
-    var intersectingPlane = new Logic.IntersectingPlane(
-        // initial position
-        new THREE.Vector3(0.5, 0.5, 0.5),
-        // initial normal
-        new THREE.Vector3(1.0, 1.0, 1.0).normalize()
-    );
-    scene.add(intersectingPlane.getMesh());
+        var cube = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
+        scene.add(cube.getMesh());
 
-    cube.getMesh().geometry.computeBoundingBox();
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.center = cube.getMesh().geometry.boundingBox.getCenter().clone().add(cube.getMesh().position);
-    controls.userPanSpeed = 0.05;
-    controls.autoRotate = true;
+        //scene.add(createArrows());
 
-    animationController = new Logic.AnimationController(scene, cube, intersectingPlane);
-}
+        var intersectingPlane = new Logic.IntersectingPlane(
+            // initial position
+            new THREE.Vector3(0.5, 0.5, 0.5),
+            // initial normal
+            new THREE.Vector3(1.0, 1.0, 1.0).normalize()
+        );
+        scene.add(intersectingPlane.getMesh());
 
-function animate() {
-    requestAnimationFrame(animate);
+        cube.getMesh().geometry.computeBoundingBox();
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.center = cube.getMesh().geometry.boundingBox.getCenter().clone().add(cube.getMesh().position);
+        controls.userPanSpeed = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
 
-    animationController.animate();
+        var arrows = new Logic.Arrows();
+        scene.add(arrows.getMesh());
 
-    renderer.render(scene, camera);
-    controls.update();
-}
+        animationController = new Logic.AnimationController(new THREE.Clock(), scene, cube, intersectingPlane, arrows);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        animationController.animate();
+
+        renderer.render(scene, camera);
+        controls.update();
+    }
+});
+
