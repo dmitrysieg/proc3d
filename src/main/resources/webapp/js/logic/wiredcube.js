@@ -1,7 +1,6 @@
 define([
-    'lib/three.min',
-    'logic/pointprocessor'
-], function(THREE, PointProcessor) {
+    'lib/three.min'
+], function(THREE) {
 
     var WiredCube = function(x1, y1, z1, x2, y2, z2) {
 
@@ -52,7 +51,7 @@ define([
     WiredCube.prototype = {
         /**
          * Find intersection of a set of line segments with a given plane.
-         * Return a mesh ready to be added to a scene.
+         * Return a set of points to be consumed by PointProcessor.
          */
         findIntersections: function(plane) {
 
@@ -88,12 +87,7 @@ define([
                 intersectionPoints.push(intersectionPoint);
             }
 
-            if (intersectionPoints.length > 0) {
-                return new PointProcessor().processPoints(plane, intersectionPoints);
-            } else {
-                // Empty object
-                return new THREE.Group();
-            }
+            return intersectionPoints;
         },
         getMesh: function() {
             return this.mesh;

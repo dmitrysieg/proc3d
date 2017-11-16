@@ -13,11 +13,15 @@ define([
         /**
          * Material used for drawing the cut mesh itself.
          */
-        cutMaterial: new THREE.MeshPhongMaterial({
+        solidMaterial: new THREE.MeshPhongMaterial({
             color: 0xEE33EE,
             side: THREE.DoubleSide,
             transparent: true,
             opacity: 0.5
+        }),
+
+        lineMaterial: new THREE.LineBasicMaterial({
+        	color: 0xEE33EE
         }),
 
         /**
@@ -27,6 +31,8 @@ define([
             color: 0xEE33EE,
             wireframe: true
         }),
+
+        meshMode: "solid",
 
         /**
          * Create a cut mesh point label, based on data used while drawing cut mesh.
@@ -62,9 +68,14 @@ define([
          */
         processPoints: function(plane, points) {
 
-            var angles = this.sortPoints(plane, points)
-
             var group = new THREE.Group();
+
+            // not enough points - empty object to render
+            if (points.length < 3) {
+                return group;
+            }
+
+            var angles = this.sortPoints(plane, points)
 
             var geometry = new THREE.Geometry();
             for (var i = 0; i < points.length; i++) {
@@ -73,11 +84,21 @@ define([
                     group.add(this.createCutLabel(points, angles, i));
                 }
             }
-            for (var i = 0; i < points.length - 2; i++) {
-                geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, plane.getNormal().clone()));
+
+            // lock the mesh mode
+            var meshMode = this.meshMode;
+            var mesh;
+            if (meshMode == "solid") {
+                for (var i = 0; i < points.length - 2; i++) {
+                    geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, plane.getNormal().clone()));
+                }
+                mesh = new THREE.Mesh(geometry, this.solidMaterial);
+            } else {
+                // add ending vertex for Line
+                geometry.vertices.push(geometry.vertices[0]);
+                mesh = new THREE.Line(geometry, this.lineMaterial);
             }
 
-            var mesh = new THREE.Mesh(geometry, this.cutMaterial);
             group.add(mesh);
             return group;
         },

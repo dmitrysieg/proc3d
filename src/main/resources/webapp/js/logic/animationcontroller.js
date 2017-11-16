@@ -1,6 +1,7 @@
 define([
-    'lib/three.min'
-], function(THREE) {
+    'lib/three.min',
+    'logic/pointprocessor'
+], function(THREE, PointProcessor) {
 
     var AnimationController = function(clock, scene, cube, intersectingPlane, arrows) {
         this.clock = clock;
@@ -17,6 +18,7 @@ define([
         direction: 1,
         intersectionCut: null,
         isRotating: true,
+        pointProcessor: new PointProcessor(),
         animate: function() {
 
             var delta = this.clock.getDelta();
@@ -49,7 +51,11 @@ define([
             if (this.intersectionCut) {
                 this.scene.remove(this.intersectionCut);
             }
-            this.intersectionCut = this.cube.findIntersections(this.intersectingPlane);
+            var intersectionCutPoints = this.cube.findIntersections(this.intersectingPlane);
+
+            this.pointProcessor.meshMode = this.isShowPlane ? "line" : "solid";
+
+            this.intersectionCut = this.pointProcessor.processPoints(this.intersectingPlane, intersectionCutPoints);
             this.scene.add(this.intersectionCut);
         },
         setShowArrows: function(value) {
