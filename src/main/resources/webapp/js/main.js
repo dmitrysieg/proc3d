@@ -75,8 +75,6 @@ require([
         var cube = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
         scene.add(cube.getMesh());
 
-        //scene.add(createArrows());
-
         var intersectingPlane = new Logic.IntersectingPlane(
             // initial position
             new THREE.Vector3(0.5, 0.5, 0.5),
