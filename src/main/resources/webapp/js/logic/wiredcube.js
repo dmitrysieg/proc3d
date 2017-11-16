@@ -91,7 +91,8 @@ define([
             if (intersectionPoints.length > 0) {
                 return new PointProcessor().processPoints(plane, intersectionPoints);
             } else {
-                return null;
+                // Empty object
+                return new THREE.Group();
             }
         },
         getMesh: function() {

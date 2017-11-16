@@ -31,7 +31,6 @@ define([
                 position.setScalar(0.0 + 0.05);
                 this.direction = -this.direction;
             }
-            // TODO: process a case with no intersection correctly
 
             // transforming intersecting plane
             this.intersectingPlane.setPosition(position);
