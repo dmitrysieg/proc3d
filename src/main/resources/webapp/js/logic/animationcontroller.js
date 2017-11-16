@@ -14,6 +14,8 @@ define([
     };
 
     AnimationController.prototype = {
+        isShowArrows: false,
+        isShowPlane: false,
         speed: 0.2,
         direction: 1,
         intersectionCut: null,
@@ -46,12 +48,22 @@ define([
                 this.intersectingPlane.normal.applyAxisAngle(this.a2, 0.005);
             }
 
-            var axer = this.intersectingPlane.getAxer(this.arrows.axis1);
-            this.arrows.rotate(axer);
-            this.arrows.move(this.intersectingPlane.position);
+            if (this.isShowArrows) {
+                var axer = this.intersectingPlane.getAxer(this.arrows.axis1);
+                this.arrows.rotate(axer);
+                this.arrows.move(this.intersectingPlane.position);
+            }
 
             this.intersectionCut = this.cube.findIntersections(this.intersectingPlane);
             this.scene.add(this.intersectionCut);
+        },
+        setShowArrows: function(value) {
+            this.isShowArrows = value;
+            this.arrows.getMesh().visible = value;
+        },
+        setShowPlane: function(value) {
+            this.isShowPlane = value;
+            // todo drive plane visibility
         }
     };
 

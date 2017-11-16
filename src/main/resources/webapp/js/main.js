@@ -93,9 +93,11 @@ require([
         controls.autoRotateSpeed = 0.5;
 
         var arrows = new Logic.Arrows();
+        arrows.getMesh().visible = false;
         scene.add(arrows.getMesh());
 
         animationController = new Logic.AnimationController(new THREE.Clock(), scene, cube, intersectingPlane, arrows);
+        var uiControls = new Logic.Controls(animationController).append(document.getElementById("div-info"));
     }
 
     function animate() {
