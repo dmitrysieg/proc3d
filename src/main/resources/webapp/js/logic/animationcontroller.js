@@ -1,6 +1,7 @@
 define([
-    'lib/three.min'
-], function(THREE) {
+    'lib/three.min',
+    'logic/pointprocessor'
+], function(THREE, PointProcessor) {
 
     var AnimationController = function(clock, scene, cube, intersectingPlane, arrows) {
         this.clock = clock;
@@ -8,16 +9,16 @@ define([
         this.cube = cube;
         this.intersectingPlane = intersectingPlane;
         this.arrows = arrows;
-        this.a1 = new THREE.Vector3(1, 0, 0);
-        this.a2 = new THREE.Vector3(0, 1, 0);
-        this.a3 = new THREE.Vector3(0, 0, 1);
     };
 
     AnimationController.prototype = {
+        isShowArrows: false,
+        isShowPlane: false,
         speed: 0.2,
         direction: 1,
         intersectionCut: null,
-        tricky: true,
+        isRotating: true,
+        pointProcessor: new PointProcessor(),
         animate: function() {
 
             var delta = this.clock.getDelta();
@@ -32,26 +33,38 @@ define([
                 position.setScalar(0.0 + 0.05);
                 this.direction = -this.direction;
             }
-            // TODO: process a case with no intersection correctly
 
+            // transforming intersecting plane
             this.intersectingPlane.setPosition(position);
+            if (this.isRotating) {
+                this.intersectingPlane.rotate(0.005);
+            }
 
+            // transforming intersecting plane
+            if (this.isShowArrows) {
+                var axer = this.intersectingPlane.getAxer(this.arrows.axis1);
+                this.arrows.rotate(axer);
+                this.arrows.move(this.intersectingPlane.position);
+            }
+
+            // transforming intersection cut
             if (this.intersectionCut) {
                 this.scene.remove(this.intersectionCut);
             }
+            var intersectionCutPoints = this.cube.findIntersections(this.intersectingPlane);
 
-            if (this.tricky) {
-                this.intersectingPlane.normal.applyAxisAngle(this.a1, 0.005);
-                this.intersectingPlane.normal.applyAxisAngle(this.a2, 0.005);
-                this.intersectingPlane.normal.applyAxisAngle(this.a2, 0.005);
-            }
+            this.pointProcessor.meshMode = this.isShowPlane ? "line" : "solid";
 
-            var axer = this.intersectingPlane.getAxer(this.arrows.axis1);
-            this.arrows.rotate(axer);
-            this.arrows.move(this.intersectingPlane.position);
-
-            this.intersectionCut = this.cube.findIntersections(this.intersectingPlane);
+            this.intersectionCut = this.pointProcessor.processPoints(this.intersectingPlane, intersectionCutPoints);
             this.scene.add(this.intersectionCut);
+        },
+        setShowArrows: function(value) {
+            this.isShowArrows = value;
+            this.arrows.getMesh().visible = value;
+        },
+        setShowPlane: function(value) {
+            this.isShowPlane = value;
+            this.intersectingPlane.getMesh().visible = value;
         }
     };
 

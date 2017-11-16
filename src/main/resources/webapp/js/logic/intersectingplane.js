@@ -37,6 +37,8 @@ define([
     };
 
     IntersectingPlane.prototype = {
+        a1: new THREE.Vector3(1, 0, 0),
+        a2: new THREE.Vector3(0, 1, 0),
         /**
          * Return a quaternion converting from the plane relative to the global.
          */
@@ -62,8 +64,19 @@ define([
         getPosition: function() {
             return this.position;
         },
+        rotate: function(angle) {
+            var oldNormal = this.normal.clone();
+
+            this.normal.applyAxisAngle(this.a1, angle);
+            this.normal.applyAxisAngle(this.a2, angle);
+
+            var q = new THREE.Quaternion();
+            q.setFromUnitVectors(oldNormal, this.normal);
+            this.getMesh().applyQuaternion(q);
+        },
         setPosition: function(position) {
             this.position = position;
+            this.getMesh().position.copy(position);
         }
     };
 

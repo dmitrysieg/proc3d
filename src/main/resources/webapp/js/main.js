@@ -75,8 +75,6 @@ require([
         var cube = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
         scene.add(cube.getMesh());
 
-        //scene.add(createArrows());
-
         var intersectingPlane = new Logic.IntersectingPlane(
             // initial position
             new THREE.Vector3(0.5, 0.5, 0.5),
@@ -93,9 +91,11 @@ require([
         controls.autoRotateSpeed = 0.5;
 
         var arrows = new Logic.Arrows();
+        arrows.getMesh().visible = false;
         scene.add(arrows.getMesh());
 
         animationController = new Logic.AnimationController(new THREE.Clock(), scene, cube, intersectingPlane, arrows);
+        var uiControls = new Logic.Controls(animationController).append(document.getElementById("div-info"));
     }
 
     function animate() {

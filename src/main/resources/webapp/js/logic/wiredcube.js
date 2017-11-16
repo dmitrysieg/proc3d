@@ -1,37 +1,47 @@
 define([
-    'lib/three.min',
-    'logic/pointprocessor'
-], function(THREE, PointProcessor) {
-
-    var lightLineMaterial = new THREE.LineBasicMaterial({linewidth: 2, color: 0x333333, opacity: 0.25, transparent: true});
+    'lib/three.min'
+], function(THREE) {
 
     var WiredCube = function(x1, y1, z1, x2, y2, z2) {
 
-        this.material = lightLineMaterial;
+        this.material = new THREE.LineBasicMaterial({linewidth: 2, color: 0x333333, opacity: 0.25, transparent: true});
+
+        this.vertices = [
+            new THREE.Vector3(x1, y1, z1),
+            new THREE.Vector3(x1, y1, z2),
+            new THREE.Vector3(x1, y2, z1),
+            new THREE.Vector3(x1, y2, z2),
+            new THREE.Vector3(x2, y1, z1),
+            new THREE.Vector3(x2, y1, z2),
+            new THREE.Vector3(x2, y2, z1),
+            new THREE.Vector3(x2, y2, z2)
+        ];
 
         this.segments = [
             // altering x
-            [new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x2, y1, z1)],
-            [new THREE.Vector3(x1, y1, z2), new THREE.Vector3(x2, y1, z2)],
-            [new THREE.Vector3(x1, y2, z1), new THREE.Vector3(x2, y2, z1)],
-            [new THREE.Vector3(x1, y2, z2), new THREE.Vector3(x2, y2, z2)],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
 
             // altering y
-            [new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x1, y2, z1)],
-            [new THREE.Vector3(x1, y1, z2), new THREE.Vector3(x1, y2, z2)],
-            [new THREE.Vector3(x2, y1, z1), new THREE.Vector3(x2, y2, z1)],
-            [new THREE.Vector3(x2, y1, z2), new THREE.Vector3(x2, y2, z2)],
+            [0, 2],
+            [1, 3],
+            [4, 6],
+            [5, 7],
 
             // altering z
-            [new THREE.Vector3(x1, y1, z1), new THREE.Vector3(x1, y1, z2)],
-            [new THREE.Vector3(x1, y2, z1), new THREE.Vector3(x1, y2, z2)],
-            [new THREE.Vector3(x2, y1, z1), new THREE.Vector3(x2, y1, z2)],
-            [new THREE.Vector3(x2, y2, z1), new THREE.Vector3(x2, y2, z2)]
+            [0, 1],
+            [2, 3],
+            [4, 5],
+            [6, 7]
         ];
 
         this.geometry = new THREE.Geometry();
         for (var i = 0; i < this.segments.length; i++) {
-            this.geometry.vertices.push(this.segments[i][0], this.segments[i][1]);
+            var vertex0 = this.vertices[this.segments[i][0]];
+            var vertex1 = this.vertices[this.segments[i][1]];
+            this.geometry.vertices.push(vertex0, vertex1);
         }
 
         this.mesh = new THREE.LineSegments(this.geometry, this.material);
@@ -41,7 +51,7 @@ define([
     WiredCube.prototype = {
         /**
          * Find intersection of a set of line segments with a given plane.
-         * Return a mesh ready to be added to a scene.
+         * Return a set of points to be consumed by PointProcessor.
          */
         findIntersections: function(plane) {
 
@@ -49,32 +59,35 @@ define([
 
             var intersectionPoints = [];
 
+            // caching calculations for vertices
+            var projections = [];
+            for (var i = 0; i < this.vertices.length; i++) {
+                var distanceToPlanePoint = this.vertices[i].clone().sub(planePoint);
+                var projection = distanceToPlanePoint.dot(plane.getNormal());
+                projections.push(projection);
+            }
+
             for (var i = 0; i < this.segments.length; i++) {
 
-                var xa = this.segments[i][0].clone().sub(planePoint.clone());
-                var projection0 = xa.dot(plane.getNormal().clone());
-
-                var ya = this.segments[i][1].clone().sub(planePoint.clone());
-                var projection1 = ya.dot(plane.getNormal().clone());
+                var projection0 = projections[this.segments[i][0]];
+                var projection1 = projections[this.segments[i][1]];
 
                 // no intersection
                 if (projection0 * projection1 > 0) {
                     continue;
                 }
                 // TODO process extreme cases (points laying on the plane)
-                var intersectionPoint = this.segments[i][0].clone().add(
-                    this.segments[i][1].clone().sub(this.segments[i][0].clone()).multiplyScalar(
-                        Math.abs(projection0) / (Math.abs(projection0) + Math.abs(projection1))
-                    )
-                );
+                var ratio = Math.abs(projection0) / (Math.abs(projection0) + Math.abs(projection1));
+
+                var vertex0 = this.vertices[this.segments[i][0]].clone();
+                var vertex1 = this.vertices[this.segments[i][1]].clone();
+
+                var direction = vertex1.sub(vertex0).multiplyScalar(ratio);
+                var intersectionPoint = vertex0.add(direction);
                 intersectionPoints.push(intersectionPoint);
             }
 
-            if (intersectionPoints.length > 0) {
-                return new PointProcessor().processPoints(plane, intersectionPoints);
-            } else {
-                return null;
-            }
+            return intersectionPoints;
         },
         getMesh: function() {
             return this.mesh;
