@@ -1,3 +1,6 @@
+/**
+ * Defines interactions between objects at the scene and animation logic.
+ */
 define([
     'lib/three.min',
     'logic/pointprocessor'
@@ -12,13 +15,38 @@ define([
     };
 
     AnimationController.prototype = {
+        /**
+         * Flag whether to show the Arrows object.
+         */
         isShowArrows: false,
+        /**
+         * Flag whether to show the intersection plane representing object.
+         */
         isShowPlane: false,
+        /**
+         * Speed of the intersection plane motion, in scene's units per second.
+         */
         speed: 0.2,
+        /**
+         * Factor having values of 1 or -1 to determine direction along the vector of intersection plane motion.
+         */
         direction: 1,
+        /**
+         * Calculated cut of the given mesh with the intersection plane.
+         */
         intersectionCut: null,
+        /**
+         * Flag whether to rotate the intersection cut to create more interesting cuts.
+         */
         isRotating: true,
+        /**
+         * Instance of the class which creates the intersection cut from the calculated intersection points.
+         */
         pointProcessor: new PointProcessor(),
+
+        /**
+         * Drives animation logic.
+         */
         animate: function() {
 
             var delta = this.clock.getDelta();
@@ -58,10 +86,18 @@ define([
             this.intersectionCut = this.pointProcessor.processPoints(this.intersectingPlane, intersectionCutPoints);
             this.scene.add(this.intersectionCut);
         },
+
+        /**
+         * Sets isShowArrows flag and the arrows visibility.
+         */
         setShowArrows: function(value) {
             this.isShowArrows = value;
             this.arrows.getMesh().visible = value;
         },
+
+        /**
+         * Sets isShowPlane flag and the plane visibility.
+         */
         setShowPlane: function(value) {
             this.isShowPlane = value;
             this.intersectingPlane.getMesh().visible = value;
