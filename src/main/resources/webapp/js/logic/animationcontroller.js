@@ -6,10 +6,10 @@ define([
     'logic/geometryprocessor'
 ], function(THREE, GeometryProcessor) {
 
-    var AnimationController = function(clock, scene, cube, intersectingPlane, arrows) {
+    var AnimationController = function(clock, scene, geometry, intersectingPlane, arrows) {
         this.clock = clock;
         this.scene = scene;
-        this.cube = cube;
+        this.geometry = geometry;
         this.intersectingPlane = intersectingPlane;
         this.arrows = arrows;
     };
@@ -79,7 +79,7 @@ define([
             if (this.intersectionCut) {
                 this.scene.remove(this.intersectionCut);
             }
-            var intersectionCutPoints = this.geometryProcessor.findIntersections(this.cube, this.intersectingPlane);
+            var intersectionCutPoints = this.geometryProcessor.findIntersections(this.geometry, this.intersectingPlane);
 
             this.geometryProcessor.meshMode = this.isShowPlane ? "line" : "solid";
 

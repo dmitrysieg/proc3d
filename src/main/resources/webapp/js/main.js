@@ -1,10 +1,10 @@
 /**
- * Visualizing intersection of a cube with a diagonal moving plane.
+ * Visualizing intersection of a convex geometry with a diagonal moving plane.
  * Plane specifics:
  * * Normal: [sqrt(3) / 3; sqrt(3) / 3; sqrt(3) / 3] ^ T.
  * * Inline point: [l; l; l] ^ T.
  *
- * The problem is to find intersections between the plane and the cube's edges.
+ * The problem is to find intersections between the plane and the geometry's edges.
  *
  */
 
@@ -72,8 +72,9 @@ require([
         light2.position.set(100, -200, -100);
         scene.add(light2);
 
-        var cube = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
-        scene.add(cube.getMesh());
+        //var geometry = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
+        var geometry = new Logic.Icosahedron(1);
+        scene.add(geometry.getMesh());
 
         var intersectingPlane = new Logic.IntersectingPlane(
             // initial position
@@ -83,9 +84,9 @@ require([
         );
         scene.add(intersectingPlane.getMesh());
 
-        cube.getMesh().geometry.computeBoundingBox();
+        geometry.getMesh().geometry.computeBoundingBox();
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.center = cube.getMesh().geometry.boundingBox.getCenter().clone().add(cube.getMesh().position);
+        controls.center = geometry.getMesh().geometry.boundingBox.getCenter().clone().add(geometry.getMesh().position);
         controls.userPanSpeed = 0.05;
         controls.autoRotate = true;
         controls.autoRotateSpeed = 0.5;
@@ -94,7 +95,7 @@ require([
         arrows.getMesh().visible = false;
         scene.add(arrows.getMesh());
 
-        animationController = new Logic.AnimationController(new THREE.Clock(), scene, cube, intersectingPlane, arrows);
+        animationController = new Logic.AnimationController(new THREE.Clock(), scene, geometry, intersectingPlane, arrows);
         var uiControls = new Logic.Controls(animationController).append(document.getElementById("div-info"));
     }
 
