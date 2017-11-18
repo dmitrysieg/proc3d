@@ -3,8 +3,8 @@
  */
 define([
     'lib/three.min',
-    'logic/pointprocessor'
-], function(THREE, PointProcessor) {
+    'logic/geometryprocessor'
+], function(THREE, GeometryProcessor) {
 
     var AnimationController = function(clock, scene, cube, intersectingPlane, arrows) {
         this.clock = clock;
@@ -42,7 +42,7 @@ define([
         /**
          * Instance of the class which creates the intersection cut from the calculated intersection points.
          */
-        pointProcessor: new PointProcessor(),
+        geometryProcessor: new GeometryProcessor(),
 
         /**
          * Drives animation logic.
@@ -79,11 +79,11 @@ define([
             if (this.intersectionCut) {
                 this.scene.remove(this.intersectionCut);
             }
-            var intersectionCutPoints = this.pointProcessor.findIntersections(this.cube, this.intersectingPlane);
+            var intersectionCutPoints = this.geometryProcessor.findIntersections(this.cube, this.intersectingPlane);
 
-            this.pointProcessor.meshMode = this.isShowPlane ? "line" : "solid";
+            this.geometryProcessor.meshMode = this.isShowPlane ? "line" : "solid";
 
-            this.intersectionCut = this.pointProcessor.createConvexPolygon(this.intersectingPlane, intersectionCutPoints);
+            this.intersectionCut = this.geometryProcessor.createConvexPolygon(this.intersectingPlane, intersectionCutPoints);
             this.scene.add(this.intersectionCut);
         },
 

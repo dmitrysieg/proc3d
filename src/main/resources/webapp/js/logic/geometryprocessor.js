@@ -1,14 +1,13 @@
 /**
- * Consume a set of randomly located points.
- * Transform them into fan-triangulated shape mesh.
+ * Class for geometry functional.
  */
 define([
     'lib/three.min'
 ], function(THREE) {
 
-    var PointProcessor = function() {};
+    var GeometryProcessor = function() {};
 
-    PointProcessor.prototype = {
+    GeometryProcessor.prototype = {
 
         /**
          * Material used for drawing the cut mesh itself.
@@ -64,7 +63,7 @@ define([
 
         /**
          * Find intersection of a set of line segments with a given plane.
-         * Return a set of points to be consumed by PointProcessor.
+         * Return a set of points to be consumed by @createConvexPolygon.
          * @param geometry: should contain:
          * * vertices: array of THREE.Vector3 representing vertices.
          * * segments: array of 2 indices of vertices.
@@ -107,6 +106,8 @@ define([
         },
 
         /**
+         * Consume a set of randomly located points.
+         * Transform them into fan-triangulated shape mesh.
          * @param points Non-empty array of Vector3.
          * Contract: points order is not guaranteed, so the method should perform sorting of them.
          */
@@ -196,5 +197,5 @@ define([
         }
     };
 
-    return PointProcessor;
+    return GeometryProcessor;
 });

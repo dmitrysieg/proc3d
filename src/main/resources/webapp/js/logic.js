@@ -3,14 +3,14 @@ define([
     'logic/arrows',
     'logic/controls',
     'logic/intersectingplane',
-    'logic/pointprocessor',
+    'logic/geometryprocessor',
     'logic/wiredcube'
 ], function(
     AnimationController,
     Arrows,
     Controls,
     IntersectingPlane,
-    PointProcessor,
+    GeometryProcessor,
     WiredCube
 ) {
     return {
@@ -18,7 +18,7 @@ define([
         Arrows: Arrows,
         Controls: Controls,
         IntersectingPlane: IntersectingPlane,
-        PointProcessor: PointProcessor,
+        GeometryProcessor: GeometryProcessor,
         WiredCube: WiredCube
     };
 });
