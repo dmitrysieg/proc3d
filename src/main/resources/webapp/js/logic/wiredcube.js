@@ -49,46 +49,6 @@ define([
     };
 
     WiredCube.prototype = {
-        /**
-         * Find intersection of a set of line segments with a given plane.
-         * Return a set of points to be consumed by PointProcessor.
-         */
-        findIntersections: function(plane) {
-
-            var planePoint = plane.getPosition();
-
-            var intersectionPoints = [];
-
-            // caching calculations for vertices
-            var projections = [];
-            for (var i = 0; i < this.vertices.length; i++) {
-                var distanceToPlanePoint = this.vertices[i].clone().sub(planePoint);
-                var projection = distanceToPlanePoint.dot(plane.getNormal());
-                projections.push(projection);
-            }
-
-            for (var i = 0; i < this.segments.length; i++) {
-
-                var projection0 = projections[this.segments[i][0]];
-                var projection1 = projections[this.segments[i][1]];
-
-                // no intersection
-                if (projection0 * projection1 > 0) {
-                    continue;
-                }
-                // TODO process extreme cases (points laying on the plane)
-                var ratio = Math.abs(projection0) / (Math.abs(projection0) + Math.abs(projection1));
-
-                var vertex0 = this.vertices[this.segments[i][0]].clone();
-                var vertex1 = this.vertices[this.segments[i][1]].clone();
-
-                var direction = vertex1.sub(vertex0).multiplyScalar(ratio);
-                var intersectionPoint = vertex0.add(direction);
-                intersectionPoints.push(intersectionPoint);
-            }
-
-            return intersectionPoints;
-        },
         getMesh: function() {
             return this.mesh;
         }

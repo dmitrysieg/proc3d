@@ -79,11 +79,11 @@ define([
             if (this.intersectionCut) {
                 this.scene.remove(this.intersectionCut);
             }
-            var intersectionCutPoints = this.cube.findIntersections(this.intersectingPlane);
+            var intersectionCutPoints = this.pointProcessor.findIntersections(this.cube, this.intersectingPlane);
 
             this.pointProcessor.meshMode = this.isShowPlane ? "line" : "solid";
 
-            this.intersectionCut = this.pointProcessor.processPoints(this.intersectingPlane, intersectionCutPoints);
+            this.intersectionCut = this.pointProcessor.createConvexPolygon(this.intersectingPlane, intersectionCutPoints);
             this.scene.add(this.intersectionCut);
         },
 
