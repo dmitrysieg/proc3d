@@ -23,6 +23,21 @@ div#div-info {
     width: 250px;
 }
 
+div#graph-el {
+    padding: 0;
+    margin: 0;
+    border: 2px solid #888888;
+    border-radius: var(--std-border-radius);
+    -moz-border-radius: var(--std-border-radius);
+    z-index: 10;
+    position: absolute;
+    left: 40px;
+    top: 200px;
+    /* todo: cope with the labels displaying nightmare. */
+    width: 250px;
+    height: 250px;
+}
+
 label {
     top: -7px;
     position: relative;

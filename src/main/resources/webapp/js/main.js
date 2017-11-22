@@ -43,6 +43,9 @@ require([
         var uiControlsEl = document.createElement("div");
         uiControlsEl.id = "div-info";
         document.body.appendChild(uiControlsEl);
+        var graphEl = document.createElement("div");
+        graphEl.id = "graph-el";
+        document.body.appendChild(graphEl);
     }
 
     function init() {
@@ -103,7 +106,9 @@ require([
         scene.add(arrows.getMesh());
 
         animationController = new Logic.AnimationController(new THREE.Clock(), scene, geometry, intersectingPlane, arrows);
-        var uiControls = new Logic.Controls(animationController).append(document.getElementById("div-info"));
+        var uiControls = new Logic.Controls.UIControls(animationController).append(document.getElementById("div-info"));
+        var graphControl = new Logic.Controls.UIGraph().append(document.getElementById("graph-el"));
+        animationController.graph = graphControl;
     }
 
     function animate() {
