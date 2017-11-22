@@ -1,46 +1,42 @@
 define(function() {
 
+    function createEl(tag, values) {
+        var el = document.createElement(tag);
+        for (var key in values) {
+            el[key] = values[key];
+        }
+        return el;
+    }
+
     var Proc3DControls = function(animationController) {
 
         this.animationController = animationController;
 
-        this.checkBox1 = document.createElement("input");
-        this.checkBox1.id = "checkbox1";
-        this.checkBox1.type = "checkbox";
-        this.checkBox1.value = "unchecked";
-
-        this.label1 = document.createElement("label");
-        this.label1['for'] = "checkbox1";
-        this.label1.innerHTML = "Show arrows";
-
-        this.checkBox2 = document.createElement("input");
-        this.checkBox2.id = "checkbox2";
-        this.checkBox2.type = "checkbox";
-        this.checkBox2.value = "unchecked";
-
-        this.label2 = document.createElement("label");
-        this.label2['for'] = "checkbox2";
-        this.label2.innerHTML = "Show plane";
+        this.controls = [{
+            checkBox: createEl("input", {id: "checkbox1", type: "checkbox", value: "unchecked"}),
+            label: createEl("label", {"for": "checkbox1", innerHTML: "Show arrows"}),
+            handler: function() {this.animationController.setShowArrows(!this.animationController.isShowArrows);}
+        }, {
+            checkBox: createEl("input", {id: "checkbox2", type: "checkbox", value: "unchecked"}),
+            label: createEl("label", {"for": "checkbox2", innerHTML: "Show plane"}),
+            handler: function() {this.animationController.setShowPlane(!this.animationController.isShowPlane);}
+        }];
     };
 
     Proc3DControls.prototype = {
         append: function(element) {
-            element.appendChild(this.checkBox1);
-            this.checkBox1.onclick = this.createDelegate(this.checkBox1onclick, this);
-            element.appendChild(this.label1);
+            for (var i = 0; i < this.controls.length; i++) {
+                var control = this.controls[i];
 
-            element.appendChild(document.createElement("br"));
+                element.appendChild(control.checkBox);
+                element.appendChild(control.label);
+                control.checkBox.onclick = this.createDelegate(control.handler, this);
 
-            element.appendChild(this.checkBox2);
-            this.checkBox2.onclick = this.createDelegate(this.checkBox2onclick, this);
-            element.appendChild(this.label2);
+                if (i < this.controls.length - 1) {
+                    element.appendChild(document.createElement("br"));
+                }
+            }
             return this;
-        },
-        checkBox1onclick: function() {
-            this.animationController.setShowArrows(!this.animationController.isShowArrows);
-        },
-        checkBox2onclick: function() {
-            this.animationController.setShowPlane(!this.animationController.isShowPlane);
         },
         createDelegate: function(fn, scope) {
             return function() {
