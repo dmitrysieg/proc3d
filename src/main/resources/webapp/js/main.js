@@ -27,6 +27,7 @@ require([
         'js/fonts/helvetiker_regular.typeface.json',
         function(result) {
             font = result;
+            initInterface();
             init();
             animate();
         },
@@ -37,6 +38,12 @@ require([
             console.log( 'An error happened' );
         }
     );
+
+    function initInterface() {
+        var uiControlsEl = document.createElement("div");
+        uiControlsEl.id = "div-info";
+        document.body.appendChild(uiControlsEl);
+    }
 
     function init() {
 
