@@ -114,10 +114,12 @@ define([
         createConvexPolygon: function(plane, points) {
 
             var group = new THREE.Group();
+            var area = 0.0;
 
             // not enough points - empty object to render
             if (points.length < 3) {
-                return group;
+                // todo dirty
+                return {area: area, group: group};
             }
 
             var angles = this.sortPoints(plane, points)
@@ -136,6 +138,11 @@ define([
             if (meshMode == "solid") {
                 for (var i = 0; i < points.length - 2; i++) {
                     geometry.faces.push(new THREE.Face3(0, 1 + i, 2 + i, plane.getNormal().clone()));
+
+                    var a = geometry.vertices[0].clone().sub(geometry.vertices[1 + i]);
+                    var b = geometry.vertices[0].clone().sub(geometry.vertices[2 + i]);
+                    var areaVector = new THREE.Vector3().crossVectors(a, b);
+                    area += 0.5 * areaVector.length();
                 }
                 mesh = new THREE.Mesh(geometry, this.solidMaterial);
             } else {
@@ -145,7 +152,7 @@ define([
             }
 
             group.add(mesh);
-            return group;
+            return {area: area, group: group};
         },
         /**
          * Sort points in the order going by round around a particular point.

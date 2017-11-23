@@ -89,7 +89,7 @@ define(function() {
             var imgData = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
 
             var x = Math.round(this.canvas.width * 0.5);
-            var y = Math.round(this.canvas.height * value);
+            var y = Math.round(this.canvas.height * (1.0 - value));
             if (this.prevY == null) {
                 // draw a point
                 this.drawPoint(imgData.data, x, y);

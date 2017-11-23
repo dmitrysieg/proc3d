@@ -82,8 +82,8 @@ require([
         light2.position.set(100, -200, -100);
         scene.add(light2);
 
-        //var geometry = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
-        var geometry = new Logic.Icosahedron(1);
+        var geometry = new Logic.WiredCube(0, 0, 0, 1, 1, 1);
+        //var geometry = new Logic.Icosahedron(1);
         scene.add(geometry.getMesh());
 
         var intersectingPlane = new Logic.IntersectingPlane(

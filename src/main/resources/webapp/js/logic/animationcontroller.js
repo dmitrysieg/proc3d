@@ -83,12 +83,14 @@ define([
 
             this.geometryProcessor.meshMode = this.isShowPlane ? "line" : "solid";
 
-            this.intersectionCut = this.geometryProcessor.createConvexPolygon(this.intersectingPlane, intersectionCutPoints);
+            var convex = this.geometryProcessor.createConvexPolygon(this.intersectingPlane, intersectionCutPoints);
+            this.intersectionCut = convex.group;
             this.scene.add(this.intersectionCut);
 
             // todo: make less dirty
             if (this.graph) {
-                this.graph.update(0.5 * (Math.sin(180.0 * 2.0 * Math.PI * this.clock.getElapsedTime() / 360.0) + 1.0));
+                //console.log(convex.area);
+                this.graph.update(0.6 * convex.area);
             }
         },
 
