@@ -2,9 +2,8 @@
  * Defines interactions between objects at the scene and animation logic.
  */
 define([
-    'lib/three.min',
     'logic/geometryprocessor'
-], function(THREE, GeometryProcessor) {
+], function(GeometryProcessor) {
 
     var AnimationController = function(clock, scene, geometry, intersectingPlane, arrows) {
         this.clock = clock;
